@@ -33,14 +33,14 @@ for item in w.query():
 
         # Write to flatfile and reset memory
         counter += 1
-        if counter % 100 == 0:
+        if counter % 10000 == 0:
             outdir = '/Users/ilya/code/random/metascience/data/crossref_{ix}.csv'
             df = pd.DataFrame.from_dict(data).transpose()
-            df.to_csv(outdir.format(ix=counter/100), index=False)
+            df.to_csv(outdir.format(ix=counter/10000), index=False)
 
             msg = 'Completed writing file {ix} at {tm}. Total write time={wt}'
             logging.info(msg.format(
-                ix=counter/100,
+                ix=counter/10000,
                 tm=datetime.now(),
                 wt = datetime.now()-starttime
                 )
@@ -49,7 +49,7 @@ for item in w.query():
             # Reset for new file
             data = {}
             starttime=datetime.now()
-        if counter % 10 == 0:
+        if counter % 2500 == 0:
             print 'Completed :', counter
 
     except Exception, e:
