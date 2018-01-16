@@ -1,2 +1,3 @@
 ENV/
-*.csv
+data/
+.DS_Store
