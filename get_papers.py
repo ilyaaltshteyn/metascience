@@ -31,45 +31,52 @@ def run_q(year, data, starttime, counter, batch_size):
         from_print_pub_date=str(year),
         until_print_pub_date=str(year)
     )
-    for item in q:
-        try:
-            temp_dat = {}
-            for k in keys:
-                temp_dat[k] = item.get(k)
-            data[item['DOI']] = temp_dat
+    try:
+        for item in q:
+            try:
+                temp_dat = {}
+                for k in keys:
+                    temp_dat[k] = item.get(k)
+                data[item['DOI']] = temp_dat
 
-            # Reduce backoff if nothing went wrong
-            if backoff > 1:
-                backoff -= 1
+                # Reduce backoff if nothing went wrong
+                if backoff > 1:
+                    backoff -= 1
 
-            # Write to flatfile and reset memory
-            counter += 1
-            if counter % batch_size == 0:
-                outdir = '/Users/ilya/code/random/metascience/data/crossref_{ix}.csv'
-                df = pd.DataFrame.from_dict(data).transpose()
-                df.to_csv(outdir.format(ix=counter/batch_size), index=False,
-                    encoding='utf-8')
+                # Write to flatfile and reset memory
+                counter = int(counter) + 1
+                if counter % batch_size == 0:
+                    outdir = '/Users/ilya/code/random/metascience/data/crossref_{ix}.csv'
+                    df = pd.DataFrame.from_dict(data).transpose()
+                    df.to_csv(outdir.format(ix=counter/batch_size), index=False,
+                        encoding='utf-8')
 
-                msg = 'Completed writing file {ix} at {tm}. Total write time={wt}'
-                logging.info(msg.format(
-                    ix=counter/batch_size,
-                    tm=datetime.now(),
-                    wt = datetime.now()-starttime
+                    msg = 'Completed writing file {ix} at {tm}. Total write time={wt}'
+                    logging.info(msg.format(
+                        ix=counter/batch_size,
+                        tm=datetime.now(),
+                        wt = datetime.now()-starttime
+                        )
                     )
-                )
 
-                # Reset for new file
-                data = {}
-                starttime=datetime.now()
+                    # Reset for new file
+                    data = {}
+                    starttime=datetime.now()
 
-            if counter % batch_size/4. == 0:
-                print 'Completed :', counter
+                if counter % batch_size/4. == 0:
+                    print 'Completed :', counter
 
-        except Exception, e:
-            print str(e)
-            logging.error(str(e) + str(traceback.print_exc()) + ' at ' + str(datetime.now()) + ' with backoff at ' + str(backoff))
-            backoff += 1
-            time.sleep(backoff)
+            except Exception, e:
+                print str(e)
+                logging.error(str(e) + str(traceback.print_exc()) + ' at ' + str(datetime.now()) + ' with backoff at ' + str(backoff))
+                backoff += 1
+                time.sleep(backoff)
+
+    except Exception, e:
+        print str(e)
+        logging.error(str(e) + str(traceback.print_exc()) + ' at ' + str(datetime.now()) + ' with backoff at ' + str(backoff))
+        backoff += 1
+        time.sleep(backoff)
 
     return {'data' : data,
         'starttime' : starttime,
@@ -80,7 +87,8 @@ def run_q(year, data, starttime, counter, batch_size):
 batch_size = 5000
 used_counters = [0]
 for f in os.listdir('/Users/ilya/code/random/metascience/data/'):
-    used_counters.append(f.split('_')[-1])
+    used_counters.append(int(f.split('_')[-1].split('.')[0]))
+
 
 init_dat = {'data' : {},
     'starttime' : datetime.now(),
